@@ -116,10 +116,10 @@ export const ProductDetailsHeader = ({
         quantity: 1,
         countryCode: locale,
       })
-    } catch (error) {
+    } catch (error: any) {
       toast.error({
         title: "Error adding to cart",
-        description: "Some variant does not have the required inventory",
+        description: error?.message || "Could not add item to cart. Please try again.",
       })
     }
   }

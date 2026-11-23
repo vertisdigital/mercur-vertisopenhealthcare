@@ -46,8 +46,17 @@ export async function retrieveCart(cartId?: string) {
       headers,
       cache: 'no-cache'
     })
-    .then(({ cart }) => cart)
-    .catch(() => null);
+    .then(async ({ cart }) => {
+      if (cart?.completed_at) {
+        await removeCartId();
+        return null;
+      }
+      return cart;
+    })
+    .catch(async () => {
+      await removeCartId();
+      return null;
+    });
 }
 
 export async function getOrSetCart(countryCode: string) {
@@ -63,7 +72,8 @@ export async function getOrSetCart(countryCode: string) {
     ...(await getAuthHeaders())
   };
 
-  if (!cart) {
+  if (!cart || cart?.completed_at) {
+    await removeCartId();
     const cartResp = await sdk.store.cart.create({ region_id: region.id }, {}, headers);
     cart = cartResp.cart;
 
@@ -116,7 +126,7 @@ export async function addToCart({
     throw new Error('Missing variant ID when adding to cart');
   }
 
-  const cart = await getOrSetCart(countryCode);
+  let cart = await getOrSetCart(countryCode);
 
   if (!cart) {
     throw new Error('Error retrieving or creating cart');
@@ -126,68 +136,68 @@ export async function addToCart({
     ...(await getAuthHeaders())
   };
 
-  const currentItem = cart.items?.find(item => item.variant_id === variantId);
+  const addItemToCart = async (targetCart: any) => {
+    const currentItem = targetCart.items?.find((item: any) => item.variant_id === variantId);
 
-  if (currentItem) {
-    await sdk.store.cart
-      .updateLineItem(
-        cart.id,
+    if (currentItem) {
+      return await sdk.store.cart.updateLineItem(
+        targetCart.id,
         currentItem.id,
         { quantity: currentItem.quantity + quantity },
         {},
         headers
-      )
-      .catch(medusaError)
-      .finally(async () => {
-        const cartCacheTag = await getCacheTag('carts');
-        revalidateTag(cartCacheTag);
-      });
-  } else {
-    // In Mercur marketplace, line items require offer_id
-    const offerRes = await sdk.client
-      .fetch<{ offers: Array<{ id: string }> }>(
-        `/store/offers?variant_id=${variantId}&limit=1`,
-        { headers }
-      )
-      .catch(() => null);
-    const offerId = offerRes?.offers?.[0]?.id;
+      );
+    } else {
+      // In Mercur marketplace, line items require offer_id
+      const offerRes = await sdk.client
+        .fetch<{ offers: Array<{ id: string }> }>(
+          `/store/offers?variant_id=${variantId}&limit=1`,
+          { headers }
+        )
+        .catch(() => null);
+      const offerId = offerRes?.offers?.[0]?.id;
 
-    if (offerId) {
-      await sdk.client
-        .fetch(`/store/carts/${cart.id}/line-items`, {
+      if (offerId) {
+        return await sdk.client.fetch(`/store/carts/${targetCart.id}/line-items`, {
           method: 'POST',
           headers,
           body: {
             offer_id: offerId,
             quantity
           }
-        })
-        .catch(medusaError)
-        .finally(async () => {
-          const cartCacheTag = await getCacheTag('carts');
-          revalidateTag(cartCacheTag);
         });
-    } else {
-      await sdk.store.cart
-        .createLineItem(
-          cart.id,
+      } else {
+        return await sdk.store.cart.createLineItem(
+          targetCart.id,
           {
             variant_id: variantId,
             quantity
           },
           {},
           headers
-        )
-        .then(async () => {
-          const cartCacheTag = await getCacheTag('carts');
-          revalidateTag(cartCacheTag);
-        })
-        .catch(medusaError)
-        .finally(async () => {
-          const cartCacheTag = await getCacheTag('carts');
-          revalidateTag(cartCacheTag);
-        });
+        );
+      }
     }
+  };
+
+  try {
+    await addItemToCart(cart);
+  } catch (err: any) {
+    const msg = err?.message || '';
+    if (msg.includes('completed') || msg.includes('400')) {
+      // Cart was completed or invalid, force recreate a fresh cart and retry once
+      await removeCartId();
+      const region = await getRegion(countryCode);
+      const newCartResp = await sdk.store.cart.create({ region_id: region?.id }, {}, headers);
+      cart = newCartResp.cart;
+      await setCartId(cart.id);
+      await addItemToCart(cart);
+    } else {
+      throw err;
+    }
+  } finally {
+    const cartCacheTag = await getCacheTag('carts');
+    revalidateTag(cartCacheTag);
   }
 }
 
@@ -448,7 +458,7 @@ export async function placeOrder(cartId?: string) {
   if (res?.data?.order_set) {
     revalidatePath('/user/reviews');
     revalidatePath('/user/orders');
-    removeCartId();
+    await removeCartId();
     redirect(`/order/${res?.data?.order_set.orders[0].id}/confirmed`);
   }
 
