@@ -70,18 +70,26 @@ export const getCartId = async () => {
 };
 
 export const setCartId = async (cartId: string) => {
-  const cookies = await nextCookies();
-  cookies.set('_medusa_cart_id', cartId, {
-    maxAge: 60 * 60 * 24 * 7,
-    httpOnly: true,
-    sameSite: 'strict',
-    secure: process.env.NODE_ENV === 'production',
-  });
+  try {
+    const cookies = await nextCookies();
+    cookies.set('_medusa_cart_id', cartId, {
+      maxAge: 60 * 60 * 24 * 7,
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+    });
+  } catch {
+    // Read-only cookie context in Server Component render
+  }
 };
 
 export const removeCartId = async () => {
-  const cookies = await nextCookies();
-  cookies.set('_medusa_cart_id', '', {
-    maxAge: -1,
-  });
+  try {
+    const cookies = await nextCookies();
+    cookies.set('_medusa_cart_id', '', {
+      maxAge: -1,
+    });
+  } catch {
+    // Read-only cookie context in Server Component render
+  }
 };
