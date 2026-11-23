@@ -197,10 +197,10 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
       <Button
         disabled={notReady}
         onClick={handlePayment}
-        className="w-full"
+        className="w-full py-4 text-base md:text-lg font-bold rounded-xl bg-[#0b3b2c] hover:bg-[#062c20] text-white flex items-center justify-center gap-2 shadow-sm"
         loading={submitting}
       >
-        Place order
+        🔒 Place Order & Deliver in Plain Box
       </Button>
       <ErrorMessage
         error={errorMessage}

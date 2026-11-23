@@ -4,7 +4,6 @@ import { Funnel_Display } from 'next/font/google';
 import './globals.css';
 
 import { Toaster } from '@medusajs/ui';
-import Head from 'next/head';
 
 import { HtmlLangSetter } from '@/components/atoms/HtmlLangSetter/HtmlLangSetter';
 import { retrieveCart } from '@/lib/data/cart';
@@ -73,8 +72,6 @@ export default async function RootLayout({
             `,
           }}
         />
-      </head>
-      <Head>
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
@@ -161,7 +158,7 @@ export default async function RootLayout({
           rel="dns-prefetch"
           href="https://api.mercurjs.com"
         />
-      </Head>
+      </head>
       <body
         suppressHydrationWarning
         className={`${funnelDisplay.className} relative bg-primary text-secondary antialiased`}

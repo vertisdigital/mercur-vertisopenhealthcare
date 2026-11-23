@@ -14,18 +14,18 @@
     --neutral-900: 22, 22, 22;
     --neutral-1000: 9, 9, 9;
 
-    /* Brand colors are used across all interactive elements such as buttons, links, inputs, etc. This color can define the overall feel and can elicit emotion. */
-    --brand-25: 247, 247, 247;
-    --brand-50: 238, 238, 238;
-    --brand-100: 226, 226, 226;
-    --brand-200: 198, 198, 198;
-    --brand-300: 163, 163, 163;
-    --brand-400: 115, 115, 115;
-    --brand-500: 82, 82, 82;
-    --brand-600: 64, 64, 64;
-    --brand-700: 27, 27, 27;
-    --brand-800: 22, 22, 22;
-    --brand-900: 9, 9, 9;
+    /* Brand colors: Vertis / SilverCircle Pine Green (#0b3b2c) */
+    --brand-25: 255, 255, 255;
+    --brand-50: 236, 253, 245;
+    --brand-100: 209, 250, 229;
+    --brand-200: 167, 243, 208;
+    --brand-300: 110, 231, 183;
+    --brand-400: 52, 211, 153;
+    --brand-500: 16, 185, 129;
+    --brand-600: 5, 150, 105;
+    --brand-700: 4, 31, 23;
+    --brand-800: 6, 44, 32;
+    --brand-900: 11, 59, 44;
     
     /* Red colors are used across error states and in "destructive" actions. */
     --red-25: 254, 243, 242;

@@ -42,21 +42,21 @@ export const HealthcareSearchBar = ({ className }: Props) => {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search SMF consumables, TENA diapers, Ensure, Omron, CTG Dementia courses..."
-          className="w-full bg-white text-gray-900 placeholder:text-gray-400 text-sm pl-4 pr-28 py-2.5 rounded-md border border-gray-300 focus:outline-none focus:border-[#e05626] focus:ring-1 focus:ring-[#e05626] shadow-inner"
+          placeholder='Search, for example "dressings", "catheters", "walking stick"...'
+          className="w-full bg-white text-gray-900 placeholder:text-gray-400 text-sm md:text-base pl-5 pr-28 py-3 rounded-full border border-gray-300 focus:outline-none focus:border-[#0b3b2c] focus:ring-1 focus:ring-[#0b3b2c] shadow-2xs"
         />
         <button
           type="submit"
-          className="absolute right-1 top-1 bottom-1 bg-[#e05626] hover:bg-[#c8461b] text-white px-5 rounded-md font-semibold text-xs md:text-sm flex items-center gap-1.5 transition-colors shadow-sm"
+          className="absolute right-1.5 top-1.5 bottom-1.5 bg-[#0b3b2c] hover:bg-[#062c20] text-white px-6 rounded-full font-bold text-xs md:text-sm flex items-center gap-1.5 transition-colors shadow-2xs"
           aria-label="Search"
         >
           <SearchIcon size={16} color="#ffffff" />
-          <span className="hidden md:inline">Search</span>
+          <span>Search</span>
         </button>
       </form>
 
-      <div className="hidden lg:flex items-center gap-2 mt-1.5 text-[11px] text-gray-300 overflow-x-auto whitespace-nowrap no-scrollbar">
-        <span className="text-gray-400">Popular:</span>
+      <div className="hidden lg:flex items-center gap-2 mt-1.5 text-[11px] text-gray-500 overflow-x-auto whitespace-nowrap no-scrollbar px-2">
+        <span className="font-semibold text-gray-400">Suggestions:</span>
         {QUICK_TAGS.map((tag) => (
           <button
             key={tag.label}
@@ -65,7 +65,7 @@ export const HealthcareSearchBar = ({ className }: Props) => {
               setQuery(tag.query)
               handleSearch(tag.query)
             }}
-            className="hover:text-white hover:underline transition-colors cursor-pointer"
+            className="hover:text-[#0b3b2c] hover:underline transition-colors cursor-pointer"
           >
             {tag.label}
           </button>

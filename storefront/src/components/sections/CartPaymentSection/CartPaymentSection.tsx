@@ -183,16 +183,27 @@ const CartPaymentSection = ({
             data-testid="payment-method-error-message"
           />
 
-          <Button
+          <button
+            type="button"
             onClick={handleSubmit}
-            variant="tonal"
-            loading={isLoading}
-            disabled={(isStripe && !cardComplete) || (!selectedPaymentMethod && !paidByGiftcard)}
+            disabled={(isStripe && !cardComplete) || (!selectedPaymentMethod && !paidByGiftcard) || isLoading}
+            className={`w-full mt-4 py-4 px-6 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-colors shadow-sm ${
+              (isStripe && !cardComplete) || (!selectedPaymentMethod && !paidByGiftcard) || isLoading
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-[#0b3b2c] hover:bg-[#062c20] text-white active:scale-[0.99]'
+            }`}
           >
-            {!activeSession && isStripeFunc(selectedPaymentMethod)
-              ? ' Enter card details'
-              : 'Continue to review'}
-          </Button>
+            {isLoading ? (
+              <span className="animate-spin">⏳</span>
+            ) : !activeSession && isStripeFunc(selectedPaymentMethod) ? (
+              'Enter card details'
+            ) : (
+              <>
+                <span>Continue to Review</span>
+                <span>→</span>
+              </>
+            )}
+          </button>
         </div>
 
         <div className={isOpen ? 'hidden' : 'block'}>

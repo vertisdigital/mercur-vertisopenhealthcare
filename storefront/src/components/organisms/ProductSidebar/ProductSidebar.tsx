@@ -45,9 +45,9 @@ export const ProductSidebar = () => {
     { name: "St Luke's Eldercare Ltd", badge: 'Healthcare', count: 2 },
     { name: 'Cerebral Palsy Alliance Singapore', badge: 'Accredited', count: 1 },
     { name: 'WhiteAngel Caregivers Consultancy', badge: 'Specialist', count: 1 },
-    { name: 'Home Nursing Foundation', badge: 'AIC Partner', count: 2 },
-    { name: 'Econ Careskill Training Centre', badge: 'AIC Accredited', count: 2 },
-    { name: 'The Salvation Army Peacehaven', badge: 'AIC Accredited', count: 3 },
+    { name: 'Home Nursing Foundation', badge: 'Verified Partner', count: 2 },
+    { name: 'Econ Careskill Training Centre', badge: 'Accredited Partner', count: 2 },
+    { name: 'The Salvation Army Peacehaven', badge: 'Accredited Partner', count: 3 },
   ];
 
   // General SMF Brands

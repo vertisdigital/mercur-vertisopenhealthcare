@@ -57,21 +57,21 @@ export const ProductCard = ({
     return (
       <div
         className={cn(
-          "relative group border border-gray-200 rounded-lg flex flex-col justify-between overflow-hidden bg-white hover:shadow-lg hover:border-orange-400 transition-all duration-200 w-full",
+          "relative group border border-[#d5e7dd] rounded-2xl flex flex-col justify-between overflow-hidden bg-white hover:shadow-lg hover:border-[#0b3b2c] transition-all duration-200 w-full",
           className
         )}
         data-testid="product-card"
         data-product-handle={product.handle}
       >
-        {/* Top Orange Ribbon (Category/Skill Banner) */}
-        <div className="bg-[#e05626] text-white text-[11px] font-bold px-3 py-1.5 truncate tracking-tight">
+        {/* Top Pine Green Ribbon (Category/Skill Banner) */}
+        <div className="bg-[#0b3b2c] text-white text-[11px] font-bold px-3 py-1.5 truncate tracking-tight">
           {skillName}
         </div>
 
         {/* Thumbnail Image */}
         <LocalizedClientLink
           href={`/products/${product.handle}`}
-          className="relative w-full aspect-[16/10] bg-amber-50 overflow-hidden block"
+          className="relative w-full aspect-[16/10] bg-[#f0fdf4] overflow-hidden block"
         >
           {product.thumbnail ? (
             <Image
@@ -94,53 +94,53 @@ export const ProductCard = ({
         </LocalizedClientLink>
 
         {/* Course Info */}
-        <div className="p-3.5 flex flex-col flex-1 justify-between">
+        <div className="p-4 flex flex-col flex-1 justify-between">
           <div>
             <LocalizedClientLink
               href={`/products/${product.handle}`}
               data-testid="product-card-title"
-              className="font-bold text-sm text-gray-900 hover:text-[#e05626] line-clamp-2 min-h-[40px] mb-1.5 transition-colors leading-snug block"
+              className="font-bold text-sm text-[#0b3b2c] hover:text-[#062c20] line-clamp-2 min-h-[40px] mb-1.5 transition-colors leading-snug block"
             >
               {product.title}
             </LocalizedClientLink>
 
             {/* Provider */}
-            <div className="text-xs text-[#e05626] font-semibold underline truncate mb-2">
+            <div className="text-xs text-[#065f46] font-semibold truncate mb-2">
               By: {provider}
             </div>
 
             {/* Price */}
-            <div className="text-base font-extrabold text-gray-900 mb-2.5">
-              {priceDisplay}
+            <div className="text-base font-extrabold text-[#0b3b2c] mb-2.5">
+              {priceDisplay} <span className="text-xs font-normal text-gray-500">incl. GST</span>
             </div>
 
             {/* 3 Bullet points */}
             <ul className="text-xs text-gray-600 space-y-1 mb-3">
               <li className="flex items-center gap-1.5">
-                <span className="text-gray-400">•</span>
+                <span className="text-emerald-700 font-bold">•</span>
                 <span className="truncate">{mode}</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="text-gray-400">•</span>
+                <span className="text-emerald-700 font-bold">•</span>
                 <span className="truncate">{courseType}</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="text-gray-400">•</span>
+                <span className="text-emerald-700 font-bold">•</span>
                 <span className="truncate">{languages}</span>
               </li>
             </ul>
           </div>
 
           {/* Footer: Duration & View Details */}
-          <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs mt-auto">
+          <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs mt-auto">
             <span className="text-gray-500 font-medium text-[11px]">
-              Course Duration: <strong className="text-gray-700">{duration}</strong>
+              Duration: <strong className="text-gray-800">{duration}</strong>
             </span>
             <LocalizedClientLink
               href={`/products/${product.handle}`}
-              className="inline-flex items-center gap-1 bg-[#e05626] hover:bg-[#c8461b] text-white font-bold px-3 py-1.5 rounded-full transition-colors shadow-2xs text-[11px]"
+              className="inline-flex items-center gap-1 bg-[#0b3b2c] hover:bg-[#062c20] text-white font-bold px-3.5 py-1.5 rounded-full transition-colors shadow-2xs text-[11px]"
             >
-              <span>View Details</span>
+              <span>View Details →</span>
             </LocalizedClientLink>
           </div>
         </div>
@@ -148,24 +148,24 @@ export const ProductCard = ({
     )
   }
 
-  // 2. SMF PHYSICAL CONSUMABLE CARD (Shopee Mall Style)
+  // 2. HEALTHCARE CONSUMABLE CARD (Elder-friendly SilverCircle Style)
   const sellerName = (product as any).seller?.name || ""
 
   return (
     <div
       className={cn(
-        "relative group border border-gray-200 rounded-lg flex flex-col justify-between p-2.5 w-full bg-white hover:shadow-lg hover:border-orange-300 transition-all duration-200",
+        "relative group border border-[#d5e7dd] rounded-2xl flex flex-col justify-between p-4 w-full bg-white hover:shadow-lg hover:border-[#0b3b2c] transition-all duration-200",
         className
       )}
       data-testid="product-card"
       data-product-handle={product.handle}
     >
-      <div className="relative w-full aspect-square bg-gray-50 rounded-md overflow-hidden" data-testid="product-card-image-container">
-        <span className="absolute top-2 left-2 z-10 bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow-sm uppercase tracking-wide">
-          Mall
+      <div className="relative w-full aspect-square bg-[#fbfdfc] rounded-xl overflow-hidden flex items-center justify-center p-2" data-testid="product-card-image-container">
+        <span className="absolute top-2.5 left-2.5 z-10 bg-[#ecfdf5] border border-[#a7f3d0] text-[#065f46] text-[10px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
+          Care Supply
         </span>
-        <span className="absolute top-2 right-2 z-10 bg-emerald-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-          Free SG Ship
+        <span className="absolute top-2.5 right-2.5 z-10 bg-white border border-gray-200 text-gray-700 text-[9px] font-semibold px-2 py-0.5 rounded-full shadow-2xs">
+          Plain box
         </span>
 
         <LocalizedClientLink
@@ -173,82 +173,77 @@ export const ProductCard = ({
           aria-label={`View ${productName}`}
           title={`View ${productName}`}
           data-testid="product-card-link"
+          className="w-full h-full flex items-center justify-center"
         >
-          <div className="overflow-hidden rounded-md w-full h-full flex justify-center items-center">
-            {product.thumbnail ? (
-              <Image
-                priority
-                fetchPriority="high"
-                src={decodeURIComponent(product.thumbnail)}
-                alt={`${productName} image`}
-                width={200}
-                height={200}
-                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-                className="object-cover aspect-square w-full object-center h-full group-hover:scale-105 transition-transform duration-300 rounded-md"
-                data-testid="product-card-image"
-              />
-            ) : (
-              <Image
-                priority
-                fetchPriority="high"
-                src="/images/placeholder.svg"
-                alt={`${productName} image placeholder`}
-                width={200}
-                height={200}
-                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-                data-testid="product-card-placeholder-image"
-              />
-            )}
-          </div>
+          {product.thumbnail ? (
+            <Image
+              priority
+              fetchPriority="high"
+              src={decodeURIComponent(product.thumbnail)}
+              alt={`${productName} image`}
+              width={220}
+              height={220}
+              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+              className="object-contain max-h-full max-w-full group-hover:scale-105 transition-transform duration-300"
+              data-testid="product-card-image"
+            />
+          ) : (
+            <Image
+              priority
+              fetchPriority="high"
+              src="/images/placeholder.svg"
+              alt={`${productName} image placeholder`}
+              width={200}
+              height={200}
+              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+              data-testid="product-card-placeholder-image"
+            />
+          )}
         </LocalizedClientLink>
       </div>
 
-      <LocalizedClientLink
-        href={`/products/${product.handle}`}
-        aria-label={`Go to ${productName} page`}
-        title={`Go to ${productName} page`}
-      >
-        <div className="flex flex-col p-2.5" data-testid="product-card-info">
+      <div className="flex flex-col pt-3 flex-1 justify-between" data-testid="product-card-info">
+        <div>
           <div className="flex items-center justify-between gap-1 text-[11px] mb-1">
             <span className="font-semibold text-gray-500 uppercase tracking-wide truncate">
-              {product.categories?.[0]?.name || "SMF Consumable"}
+              {product.categories?.[0]?.name || "Care Supply"}
             </span>
             {sellerName && (
-              <span className="font-bold text-[#e05626] bg-orange-50 border border-orange-200 px-1.5 py-0.2 rounded text-[10px] shrink-0 truncate max-w-[130px]">
+              <span className="font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full text-[10px] shrink-0 truncate max-w-[120px]">
                 {sellerName}
               </span>
             )}
           </div>
-          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 min-h-[40px] hover:text-[#e05626] transition-colors" data-testid="product-card-title">
+
+          <LocalizedClientLink
+            href={`/products/${product.handle}`}
+            className="text-base font-bold text-[#0b3b2c] hover:text-[#062c20] line-clamp-2 min-h-[44px] leading-snug transition-colors"
+            data-testid="product-card-title"
+          >
             {product.title}
-          </h3>
+          </LocalizedClientLink>
 
-          {/* Stars & Social Proof */}
-          <div className="flex items-center gap-1.5 my-1 text-xs text-amber-500">
-            <span>★★★★★</span>
-            <span className="font-bold text-gray-700 text-[11px]">4.9</span>
-            <span className="text-gray-400 text-[11px]">• 120+ sold in SG</span>
-          </div>
+          <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+            {product.description || "Clear sizes and fast doorstep delivery"}
+          </p>
 
-          <div className="flex items-baseline gap-2 mt-1" data-testid="product-card-price">
-            <p className="text-base md:text-lg font-extrabold text-[#e05626]" data-testid="product-card-current-price">
+          <div className="flex items-baseline gap-1.5 mt-2" data-testid="product-card-price">
+            <p className="text-lg md:text-xl font-extrabold text-[#0b3b2c]" data-testid="product-card-current-price">
               {cheapestPrice?.calculated_price}
             </p>
-            {cheapestPrice?.calculated_price !==
-              cheapestPrice?.original_price && (
-              <p className="text-xs text-gray-400 line-through" data-testid="product-card-original-price">
-                {cheapestPrice?.original_price}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-2.5">
-            <div className="w-full text-center text-xs font-bold uppercase py-2 px-3 rounded bg-orange-50 text-[#e05626] border border-orange-200 group-hover:bg-[#e05626] group-hover:text-white transition-all shadow-2xs">
-              View Product →
-            </div>
+            <span className="text-xs text-gray-500 font-medium">incl. GST</span>
           </div>
         </div>
-      </LocalizedClientLink>
+
+        <div className="mt-3.5 pt-2 border-t border-gray-100">
+          <LocalizedClientLink
+            href={`/products/${product.handle}`}
+            className="w-full text-center text-xs font-bold py-2.5 px-4 rounded-full bg-[#0b3b2c] hover:bg-[#062c20] text-white transition-all shadow-xs flex items-center justify-center gap-1.5"
+          >
+            <span>+ Add to cart</span>
+          </LocalizedClientLink>
+        </div>
+      </div>
     </div>
   )
 }

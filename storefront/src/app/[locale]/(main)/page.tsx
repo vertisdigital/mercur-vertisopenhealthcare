@@ -1,10 +1,11 @@
 import {
-  HomeCategories,
   HomeProductSection,
 } from "@/components/sections"
-import { HealthcareTrustBar } from "@/components/sections/HealthcareTrustBar/HealthcareTrustBar"
-import { VertisPortalBanners } from "@/components/sections/VertisPortalBanners/VertisPortalBanners"
-import { OfficialBrandMalls } from "@/components/sections/OfficialBrandMalls/OfficialBrandMalls"
+import { ElderHero } from "@/components/sections/ElderHero/ElderHero"
+import { ElderTrustBar } from "@/components/sections/ElderTrustBar/ElderTrustBar"
+import { ElderShopByNeed } from "@/components/sections/ElderShopByNeed/ElderShopByNeed"
+import { ElderOrderingSteps } from "@/components/sections/ElderOrderingSteps/ElderOrderingSteps"
+import { ElderPhoneOrderCallout } from "@/components/sections/ElderPhoneOrderCallout/ElderPhoneOrderCallout"
 
 import type { Metadata } from "next"
 import { headers } from "next/headers"
@@ -46,9 +47,9 @@ export async function generateMetadata({
     languages = { [toHreflang(locale)]: `${baseUrl}/${locale}` }
   }
 
-  const title = "Vertis Open Healthcare Platform | SMF Consumables Marketplace"
+  const title = "Vertis Open Healthcare | Care supplies, made simple"
   const description =
-    "Singapore's trusted open healthcare marketplace for unsubsidised and SMF-eligible medical consumables, senior care nutrition, and diagnostic devices."
+    "Singapore's trusted elder-friendly healthcare marketplace. Catheters, wound dressings, mobility aids and more — delivered to your door in a plain box."
   const canonical = `${baseUrl}/${locale}`
 
   return {
@@ -69,7 +70,7 @@ export async function generateMetadata({
       title,
       description,
       url: canonical,
-      siteName: "Vertis Open Healthcare Platform",
+      siteName: "Vertis Open Healthcare",
       type: "website",
     },
   }
@@ -86,10 +87,10 @@ export default async function Home({
   const host = headersList.get("host")
   const protocol = headersList.get("x-forwarded-proto") || "https"
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`
-  const siteName = "Vertis Open Healthcare Platform"
+  const siteName = "Vertis Open Healthcare"
 
   return (
-    <main className="flex flex-col w-full text-gray-900 bg-[#fafafa]">
+    <main className="flex flex-col w-full text-gray-900 bg-white">
       {/* Organization JSON-LD */}
       <Script
         id="ld-org"
@@ -100,35 +101,37 @@ export default async function Home({
             "@type": "Organization",
             name: siteName,
             url: `${baseUrl}/${locale}`,
-            logo: `${baseUrl}/vertis-logo.png`,
+            logo: `${baseUrl}/Logo.svg`,
           }),
         }}
       />
 
-      {/* 1. Shopee-style Trust Bar */}
-      <HealthcareTrustBar />
+      {/* 1. HERO SECTION (Care supplies, made simple + Monthly delivery tracker preview) */}
+      <ElderHero />
 
-      <div className="max-w-7xl mx-auto w-full px-4 lg:px-8 py-4 space-y-6">
-        {/* 2. Vertis Healthcare Callout Banners */}
-        <VertisPortalBanners />
+      {/* 2. TRUST PILLARS BAR (Free delivery, Discreet packaging, Repeat deliveries, Real people) */}
+      <ElderTrustBar />
 
-        {/* 3. Shopee Mall Official Healthcare Brands */}
-        <OfficialBrandMalls />
+      {/* 3. SHOP BY NEED (Six Simple Aisles Grid) */}
+      <ElderShopByNeed />
 
-        {/* 4. Shopee Flash Picks / Popular SMF Consumables */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 shadow-xs">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🔥</span>
-              <h3 className="text-xl md:text-2xl font-extrabold text-gray-900 uppercase tracking-tight">
-                Senior Care Essentials • Popular Picks
-              </h3>
+      {/* 4. MOST REORDERED CARE SUPPLIES */}
+      <section className="w-full py-12 md:py-16 bg-[#fbfdfc] border-t border-[#e6f0ea]">
+        <div className="max-w-7xl mx-auto w-full px-4 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-[#0b3b2c]">
+                Most reordered
+              </h2>
+              <p className="text-sm md:text-base text-gray-600 mt-1">
+                The supplies our customers come back for, with sizes and pack counts shown clearly.
+              </p>
             </div>
             <Link
               href="/categories"
-              className="text-xs md:text-sm font-semibold text-[#e05626] hover:underline"
+              className="text-sm font-bold text-[#0b3b2c] hover:underline inline-flex items-center gap-1 shrink-0"
             >
-              Browse All 12 Items →
+              See all products →
             </Link>
           </div>
 
@@ -138,12 +141,13 @@ export default async function Home({
             home
           />
         </div>
+      </section>
 
-        {/* 5. Shop by Care Need (Categories) */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 shadow-xs mb-8">
-          <HomeCategories heading="SHOP BY CARE NEED" />
-        </div>
-      </div>
+      {/* 5. ORDERING IN THREE STEPS */}
+      <ElderOrderingSteps />
+
+      {/* 6. PREFER TO ORDER BY PHONE? */}
+      <ElderPhoneOrderCallout />
     </main>
   )
 }

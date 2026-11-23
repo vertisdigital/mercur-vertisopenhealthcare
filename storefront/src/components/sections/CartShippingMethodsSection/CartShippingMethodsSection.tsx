@@ -62,6 +62,10 @@ const CartShippingMethodsSection: FC<ShippingProps> = ({ cart, availableShipping
   const [error, setError] = useState<string | null>(null);
   const [isPendingDeleteRow, startTransitionDeleteRow] = useTransition();
 
+  const [selectedDay, setSelectedDay] = useState<'tomorrow' | 'day2' | 'day3'>('tomorrow');
+  const [selectedSlot, setSelectedSlot] = useState<'morning' | 'afternoon'>('morning');
+  const [deliveryNote, setDeliveryNote] = useState('');
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -281,7 +285,7 @@ const CartShippingMethodsSection: FC<ShippingProps> = ({ cart, availableShipping
                       </div>
                     ))}
                 {!!cart?.shipping_methods?.length && (
-                  <div className="flex flex-col">
+                  <div className="flex flex-col gap-4 mt-2">
                     {cart.shipping_methods?.map(method => (
                       <CartShippingMethodRow
                         key={method.id}
@@ -290,24 +294,151 @@ const CartShippingMethodsSection: FC<ShippingProps> = ({ cart, availableShipping
                         onRemoveShippingMethod={handleRemoveShippingMethod}
                       />
                     ))}
+
+                    {/* Elder Delivery Preference & Day Selector */}
+                    <div className="mt-4 p-5 rounded-2xl bg-[#fbfdfc] border border-[#e6f0ea] flex flex-col gap-5">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-sm font-bold text-gray-800">
+                            1. Select preferred delivery date
+                          </label>
+                          <span className="text-xs font-semibold text-[#065f46] bg-[#ecfdf5] px-2 py-0.5 rounded-full border border-[#a7f3d0]">
+                            Plain box delivery
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDay('tomorrow')}
+                            className={`p-2.5 rounded-xl border text-center transition-all ${
+                              selectedDay === 'tomorrow'
+                                ? 'border-[#0b3b2c] bg-[#ecfdf5] text-[#0b3b2c] font-bold shadow-sm'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <span className="block text-xs uppercase tracking-wider text-gray-500">Fastest</span>
+                            <span className="block text-sm">Tomorrow</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDay('day2')}
+                            className={`p-2.5 rounded-xl border text-center transition-all ${
+                              selectedDay === 'day2'
+                                ? 'border-[#0b3b2c] bg-[#ecfdf5] text-[#0b3b2c] font-bold shadow-sm'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <span className="block text-xs uppercase tracking-wider text-gray-500">Standard</span>
+                            <span className="block text-sm">Thu 27 Nov</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDay('day3')}
+                            className={`p-2.5 rounded-xl border text-center transition-all ${
+                              selectedDay === 'day3'
+                                ? 'border-[#0b3b2c] bg-[#ecfdf5] text-[#0b3b2c] font-bold shadow-sm'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <span className="block text-xs uppercase tracking-wider text-gray-500">Flexible</span>
+                            <span className="block text-sm">Fri 28 Nov</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-800 mb-2">
+                          2. Preferred arrival window
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSlot('morning')}
+                            className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                              selectedSlot === 'morning'
+                                ? 'border-[#0b3b2c] bg-[#ecfdf5] text-[#0b3b2c] font-bold shadow-sm'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <div>
+                              <span className="block text-sm">🌅 Morning slot</span>
+                              <span className="block text-xs text-gray-500 font-normal">9:00 AM – 1:00 PM</span>
+                            </div>
+                            <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                              selectedSlot === 'morning' ? 'border-[#0b3b2c] bg-[#0b3b2c]' : 'border-gray-300'
+                            }`}>
+                              {selectedSlot === 'morning' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSlot('afternoon')}
+                            className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                              selectedSlot === 'afternoon'
+                                ? 'border-[#0b3b2c] bg-[#ecfdf5] text-[#0b3b2c] font-bold shadow-sm'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <div>
+                              <span className="block text-sm">🌇 Afternoon slot</span>
+                              <span className="block text-xs text-gray-500 font-normal">2:00 PM – 6:00 PM</span>
+                            </div>
+                            <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                              selectedSlot === 'afternoon' ? 'border-[#0b3b2c] bg-[#0b3b2c]' : 'border-gray-300'
+                            }`}>
+                              {selectedSlot === 'afternoon' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                          3. Safe place / Doorstep notes (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Leave outside door if unattended, or ring door chime"
+                          value={deliveryNote}
+                          onChange={(e) => setDeliveryNote(e.target.value)}
+                          className="w-full text-sm p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#0b3b2c] focus:ring-1 focus:ring-[#0b3b2c] bg-white placeholder-gray-400"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-gray-600 bg-white p-3 rounded-xl border border-gray-100">
+                        <span className="text-base">📦</span>
+                        <span><strong>Discreet packaging guarantee:</strong> Your parcel will arrive in a plain, sturdy brown carton with no healthcare markings.</span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
-          <div>
+          <div className="mt-6">
             <ErrorMessage
               error={error}
               data-testid="delivery-option-error-message"
             />
-            <Button
+            <button
+              type="button"
               onClick={handleSubmit}
-              variant="tonal"
               disabled={!cart.shipping_methods?.[0] || isPendingDeleteRow}
-              loading={isLoadingPrices}
+              className={`w-full py-4 px-6 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-colors shadow-sm ${
+                !cart.shipping_methods?.[0] || isPendingDeleteRow
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-[#0b3b2c] hover:bg-[#062c20] text-white active:scale-[0.99]'
+              }`}
             >
-              Continue to payment
-            </Button>
+              {isLoadingPrices ? (
+                <span className="animate-spin">⏳</span>
+              ) : (
+                <>
+                  <span>Continue to Payment</span>
+                  <span>→</span>
+                </>
+              )}
+            </button>
           </div>
         </>
       ) : (

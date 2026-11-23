@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/atoms"
 import { HttpTypes } from "@medusajs/types"
 import { ProductVariants } from "@/components/molecules"
@@ -123,28 +124,37 @@ export const ProductDetailsHeader = ({
     }
   }
 
+  const [orderFrequency, setOrderFrequency] = useState<"once" | "repeat">("once")
   const isAddToCartDisabled = !isInStock || !variantHasPrice || !hasAnyPrice || isVariantStockMaxLimitReached
 
+  const rawPriceNumber = variantPrice?.calculated_price_number || 0
+  const repeatDiscountPrice = (rawPriceNumber * 0.95).toFixed(2)
+
   return (
-    <div className="border rounded-sm p-5" data-testid="product-details-header">
-      <div className="flex justify-between">
+    <div className="border border-[#e2e8f0] bg-white rounded-2xl p-6 shadow-sm" data-testid="product-details-header">
+      <div className="flex justify-between items-start gap-4">
         <div>
-          <h2 className="label-md text-secondary">
-            {/* {product?.brand || "No brand"} */}
-          </h2>
-          <h1 className="heading-lg text-primary" data-testid="product-title">{product.title}</h1>
-          <div className="mt-2 flex gap-2 items-center" data-testid="product-price-container">
+          {/* Trust pill */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ecfdf5] text-[#065f46] text-xs font-semibold mb-3 border border-[#a7f3d0]">
+            <span>📦</span>
+            <span>Discreet plain packaging • Hospital grade</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#0b3b2c] tracking-tight" data-testid="product-title">{product.title}</h1>
+          <div className="mt-3 flex items-baseline gap-3" data-testid="product-price-container">
             {hasAnyPrice && variantPrice ? (
               <>
-                <span className="heading-md text-primary" data-testid="product-price-current">
-                  {variantPrice.calculated_price}
+                <span className="text-3xl font-extrabold text-[#0b3b2c]" data-testid="product-price-current">
+                  {orderFrequency === "repeat" ? `${variantPrice.currency_code?.toUpperCase()} ${repeatDiscountPrice}` : variantPrice.calculated_price}
                 </span>
                 {variantPrice.calculated_price_number !==
                   variantPrice.original_price_number && (
-                  <span className="label-md text-secondary line-through" data-testid="product-price-original">
+                  <span className="text-base text-gray-400 line-through" data-testid="product-price-original">
                     {variantPrice.original_price}
                   </span>
                 )}
+                <span className="text-xs text-gray-500 font-medium">
+                  {orderFrequency === "repeat" ? "(Includes 5% repeat discount & GST)" : "(Includes GST & plain box delivery)"}
+                </span>
               </>
             ) : (
               <span className="label-md text-secondary pt-2 pb-4" data-testid="product-price-unavailable">
@@ -162,34 +172,117 @@ export const ProductDetailsHeader = ({
           />
         </div>
       </div>
+
       {/* Product Variants */}
       {hasAnyPrice && (
-        <ProductVariants product={product} selectedVariant={selectedVariant} />
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <ProductVariants product={product} selectedVariant={selectedVariant} />
+        </div>
       )}
-      {/* Add to Cart */}
-      <Button
+
+      {/* Frequency Selector: Just this once vs Repeat every 4 weeks */}
+      <div className="mt-6 mb-6">
+        <label className="block text-sm font-bold text-gray-800 mb-2.5">
+          Delivery frequency
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setOrderFrequency("once")}
+            className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+              orderFrequency === "once"
+                ? "border-[#0b3b2c] bg-[#ecfdf5]/40 ring-2 ring-[#0b3b2c]/20"
+                : "border-gray-200 hover:border-gray-300 bg-white"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-bold text-sm text-gray-900">Just this once</span>
+              <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                orderFrequency === "once" ? "border-[#0b3b2c] bg-[#0b3b2c]" : "border-gray-300"
+              }`}>
+                {orderFrequency === "once" && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500">Standard single order delivery</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setOrderFrequency("repeat")}
+            className={`p-3.5 rounded-xl border text-left transition-all relative flex flex-col justify-between ${
+              orderFrequency === "repeat"
+                ? "border-[#0b3b2c] bg-[#ecfdf5]/50 ring-2 ring-[#0b3b2c]/20"
+                : "border-gray-200 hover:border-gray-300 bg-white"
+            }`}
+          >
+            <span className="absolute -top-2.5 right-3 bg-[#065f46] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+              Save 5%
+            </span>
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-bold text-sm text-[#0b3b2c]">Repeat every 4 weeks</span>
+              <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                orderFrequency === "repeat" ? "border-[#0b3b2c] bg-[#0b3b2c]" : "border-gray-300"
+              }`}>
+                {orderFrequency === "repeat" && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600">Pause or cancel any time with 1 click</p>
+          </button>
+        </div>
+      </div>
+
+      {/* Add to Cart Button */}
+      <button
+        type="button"
         onClick={handleAddToCart}
         disabled={isAddToCartDisabled}
-        loading={isAddingItem}
-        className="w-full uppercase mb-4 py-3 flex justify-center"
-        size="large"
+        className={`w-full py-4 px-6 rounded-xl font-bold text-base md:text-lg flex items-center justify-center gap-2 transition-colors shadow-sm ${
+          isAddToCartDisabled
+            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+            : "bg-[#0b3b2c] hover:bg-[#062c20] text-white active:scale-[0.99]"
+        }`}
         data-testid="product-add-to-cart-button"
       >
-        {!hasAnyPrice
-          ? "NOT AVAILABLE IN YOUR REGION"
-          : isInStock && variantHasPrice
-          ? "ADD TO CART"
-          : "OUT OF STOCK"}
-      </Button>
-      {/* Seller message */}
+        {isAddingItem ? (
+          <span className="animate-spin text-xl">⏳</span>
+        ) : !hasAnyPrice ? (
+          "NOT AVAILABLE IN YOUR REGION"
+        ) : isInStock && variantHasPrice ? (
+          <>
+            <span>🛒</span>
+            <span>Add to cart {orderFrequency === "repeat" ? "(Every 4 weeks)" : ""}</span>
+          </>
+        ) : (
+          "OUT OF STOCK"
+        )}
+      </button>
 
+      {/* Trust & Discreet delivery box */}
+      <div className="mt-6 pt-5 border-t border-gray-100 flex flex-col gap-2.5 text-xs text-gray-600">
+        <div className="flex items-center gap-2">
+          <span className="text-base">📦</span>
+          <span><strong>Plain box guarantee:</strong> Arrives in an unmarked brown box with no mention of healthcare or medical contents.</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-base">🚚</span>
+          <span><strong>Fast Singapore delivery:</strong> Dispatched in 24 hours. Free delivery on orders over $50.</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-base">📞</span>
+          <span><strong>Prefer telephone order?</strong> Call toll-free <a href="tel:18001234567" className="font-bold text-[#0b3b2c] underline">1800 123 4567</a> (Mon–Sat 9am–6pm).</span>
+        </div>
+      </div>
+
+      {/* Seller message */}
       {user && product.seller && (
-        <Chat
-          user={user}
-          seller={product.seller}
-          buttonClassNames="w-full uppercase"
-          product={product}
-        />
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <Chat
+            user={user}
+            seller={product.seller}
+            buttonClassNames="w-full uppercase text-xs"
+            product={product}
+          />
+        </div>
       )}
     </div>
   )
