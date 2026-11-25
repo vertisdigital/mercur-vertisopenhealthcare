@@ -182,106 +182,98 @@ const CartShippingMethodsSection: FC<ShippingProps> = ({ cart, availableShipping
   );
 
   return (
-    <div className="bg-ui-bg-interactive rounded-sm border p-4">
-      <div className="mb-6 flex flex-row items-center justify-between">
+    <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 shadow-xs">
+      <div className="mb-5 flex flex-row items-center justify-between">
         <Heading
           level="h2"
-          className="text-3xl-regular flex flex-row items-baseline gap-x-2"
+          className="text-xl font-bold text-[#0b3b2c] flex flex-row items-center gap-x-2"
         >
-          {!isOpen && (cart.shipping_methods?.length ?? 0) > 0 && <CheckCircleSolid />}
-          Delivery
+          {!isOpen && (cart.shipping_methods?.length ?? 0) > 0 && (
+            <span className="w-6 h-6 rounded-full bg-[#0b3b2c] text-white text-xs flex items-center justify-center font-bold">✓</span>
+          )}
+          Choose your delivery
         </Heading>
         {isEditEnabled && (
-          <Text>
-            <Button
-              onClick={handleEdit}
-              variant="tonal"
-            >
-              Edit
-            </Button>
-          </Text>
+          <button
+            type="button"
+            onClick={handleEdit}
+            className="px-4 py-1.5 rounded-full border border-gray-300 text-xs font-semibold text-[#0b3b2c] hover:bg-gray-50 transition-colors"
+          >
+            Edit
+          </button>
         )}
       </div>
       {isOpen ? (
         <>
           <div className="grid">
             <div data-testid="delivery-options-container">
-              <div className="pb-8 pt-2 md:pt-0">
+              <div className="pb-4 pt-1">
                 {filteredGroupedBySellerId.length === 0
                   ? 'No shipping options available'
                   : filteredGroupedBySellerId.map(key => (
-                      <div
-                        key={key}
-                        className="mb-4"
-                      >
-                        <Heading
-                          level="h3"
-                          className="mb-2"
-                        >
-                          {groupedBySellerId[key][0].seller_name}
-                        </Heading>
-                        <Listbox
-                          value={cart.shipping_methods?.[0]?.id}
-                          onChange={value => {
-                            handleSetShippingMethod(value);
-                          }}
-                        >
-                          <div className="relative">
-                            <Listbox.Button
-                              className={clsx(
-                                'text-base-regular relative flex h-12 w-full cursor-default items-center justify-between rounded-lg border bg-component-secondary px-4 text-left focus:outline-none focus-visible:border-gray-300 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-300'
-                              )}
-                            >
-                              {({ open }) => (
-                                <>
-                                  <span className="block truncate">Choose delivery option</span>
-                                  <ChevronUpDown
-                                    className={clx('transition-rotate duration-200', {
-                                      'rotate-180 transform': open
-                                    })}
-                                  />
-                                </>
-                              )}
-                            </Listbox.Button>
-                            <Transition
-                              as={Fragment}
-                              leave="transition ease-in duration-100"
-                              leaveFrom="opacity-100"
-                              leaveTo="opacity-0"
-                            >
-                              <Listbox.Options
-                                className="text-small-regular border-top-0 absolute z-20 max-h-60 w-full overflow-auto rounded-lg border bg-white focus:outline-none sm:text-sm"
-                                data-testid="shipping-address-options"
+                      <div key={key} className="mb-4">
+                        {filteredGroupedBySellerId.length > 1 && (
+                          <Heading level="h3" className="text-sm font-bold text-gray-700 mb-2">
+                            {groupedBySellerId[key][0].seller_name}
+                          </Heading>
+                        )}
+                        {/* Cards, not dropdowns (Slide 5) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5" data-testid="shipping-address-options">
+                          {groupedBySellerId[key].map((option: any) => {
+                            const isSelected = cart.shipping_methods?.some(
+                              (m: any) => m.shipping_option_id === option.id || m.id === option.id || m.name === option.name
+                            );
+                            const rawAmount =
+                              option.price_type === 'flat'
+                                ? option.amount
+                                : calculatedPricesMap[option.id];
+                            const priceDisplay =
+                              rawAmount === 0
+                                ? 'Free'
+                                : rawAmount !== undefined
+                                ? convertToLocale({
+                                    amount: rawAmount,
+                                    currency_code: cart?.currency_code,
+                                  })
+                                : isLoadingPrices
+                                ? '...'
+                                : '-';
+
+                            return (
+                              <button
+                                type="button"
+                                key={option.id}
+                                onClick={() => handleSetShippingMethod(option.id)}
+                                className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between gap-3 ${
+                                  isSelected
+                                    ? 'border-2 border-[#0b3b2c] bg-[#ecfdf5]/30 shadow-xs'
+                                    : 'border-gray-200 bg-white hover:border-[#0b3b2c]/50'
+                                }`}
                               >
-                                {groupedBySellerId[key].map((option: any) => (
-                                  <Listbox.Option
-                                    className="relative cursor-pointer select-none border-b py-4 pl-6 pr-10 hover:bg-gray-50"
-                                    value={option.id}
-                                    key={option.id}
+                                <div className="flex items-start gap-2.5">
+                                  <span
+                                    className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                      isSelected ? 'border-[#0b3b2c] bg-[#0b3b2c]' : 'border-gray-400'
+                                    }`}
                                   >
-                                    {option.name}
-                                    {' - '}
-                                    {option.price_type === 'flat' ? (
-                                      convertToLocale({
-                                        amount: option.amount!,
-                                        currency_code: cart?.currency_code
-                                      })
-                                    ) : calculatedPricesMap[option.id] ? (
-                                      convertToLocale({
-                                        amount: calculatedPricesMap[option.id],
-                                        currency_code: cart?.currency_code
-                                      })
-                                    ) : isLoadingPrices ? (
-                                      <Loader />
-                                    ) : (
-                                      '-'
-                                    )}
-                                  </Listbox.Option>
-                                ))}
-                              </Listbox.Options>
-                            </Transition>
-                          </div>
-                        </Listbox>
+                                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                  </span>
+                                  <div>
+                                    <span className="block text-sm font-bold text-[#0b3b2c]">
+                                      {option.name}
+                                    </span>
+                                    <span className="block text-xs text-gray-500 mt-1 leading-relaxed">
+                                      Plain box. Our driver calls 30 minutes before arriving.
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="pl-6 text-sm font-bold text-[#0b3b2c]">
+                                  {priceDisplay}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     ))}
                 {!!cart?.shipping_methods?.length && (
@@ -424,7 +416,7 @@ const CartShippingMethodsSection: FC<ShippingProps> = ({ cart, availableShipping
               type="button"
               onClick={handleSubmit}
               disabled={!cart.shipping_methods?.[0] || isPendingDeleteRow}
-              className={`w-full py-4 px-6 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-colors shadow-sm ${
+              className={`w-full py-3.5 px-6 rounded-full font-bold text-sm md:text-base flex items-center justify-center gap-2 transition-colors shadow-xs ${
                 !cart.shipping_methods?.[0] || isPendingDeleteRow
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : 'bg-[#0b3b2c] hover:bg-[#062c20] text-white active:scale-[0.99]'
@@ -433,10 +425,7 @@ const CartShippingMethodsSection: FC<ShippingProps> = ({ cart, availableShipping
               {isLoadingPrices ? (
                 <span className="animate-spin">⏳</span>
               ) : (
-                <>
-                  <span>Continue to Payment</span>
-                  <span>→</span>
-                </>
+                <span>Continue to payment</span>
               )}
             </button>
           </div>

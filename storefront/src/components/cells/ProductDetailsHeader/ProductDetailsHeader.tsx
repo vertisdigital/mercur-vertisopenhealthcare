@@ -88,17 +88,22 @@ export const ProductDetailsHeader = ({
     manageInventory && !allowBackorder &&
     ((cart?.items?.find((item) => item.variant_id === variantId)?.quantity ?? 0) >= variantStock)
 
+  const [quantity, setQuantity] = useState(1)
+  const [showCompareModal, setShowCompareModal] = useState(false)
+  const [offers, setOffers] = useState<any[]>([])
+  const [loadingOffers, setLoadingOffers] = useState(false)
+
   // add the selected variant to the cart
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (qty = quantity) => {
     if (!variantId || !hasAnyPrice || isVariantStockMaxLimitReached) return
 
-    const subtotal = +(variantPrice?.calculated_price_without_tax_number || 0)
-    const total = +(variantPrice?.calculated_price_number || 0)
+    const subtotal = +(variantPrice?.calculated_price_without_tax_number || 0) * qty
+    const total = +(variantPrice?.calculated_price_number || 0) * qty
 
     const storeCartLineItem = {
       thumbnail: product.thumbnail || "",
       product_title: product.title,
-      quantity: 1,
+      quantity: qty,
       subtotal,
       total,
       tax_total: total - subtotal,
@@ -113,7 +118,7 @@ export const ProductDetailsHeader = ({
     try {
       await addToCart({
         variantId: variantId,
-        quantity: 1,
+        quantity: qty,
         countryCode: locale,
       })
     } catch (error: any) {
@@ -124,37 +129,55 @@ export const ProductDetailsHeader = ({
     }
   }
 
-  const [orderFrequency, setOrderFrequency] = useState<"once" | "repeat">("once")
+  const handleOpenCompare = async () => {
+    setShowCompareModal(true)
+    if (!variantId) return
+    setLoadingOffers(true)
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"
+      const pubKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ""
+      const res = await fetch(`${baseUrl}/store/offers?variant_id=${variantId}`, {
+        headers: { "x-publishable-api-key": pubKey },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setOffers(data?.offers || [])
+      }
+    } catch {
+      // Fallback gracefully
+    } finally {
+      setLoadingOffers(false)
+    }
+  }
+
   const isAddToCartDisabled = !isInStock || !variantHasPrice || !hasAnyPrice || isVariantStockMaxLimitReached
 
   const rawPriceNumber = variantPrice?.calculated_price_number || 0
-  const repeatDiscountPrice = (rawPriceNumber * 0.95).toFixed(2)
+  const totalPriceFormatted = variantPrice
+    ? `${variantPrice.currency_code?.toUpperCase() === "SGD" ? "S$" : variantPrice.currency_code?.toUpperCase() + " "}${(rawPriceNumber * quantity).toFixed(2)}`
+    : ""
+  const chosenSummary = selectedVariantObj?.title || Object.values(selectedVariant).filter(Boolean).join(" / ")
 
   return (
-    <div className="border border-[#e2e8f0] bg-white rounded-2xl p-6 shadow-sm" data-testid="product-details-header">
+    <div className="border border-[#e2e8f0] bg-white rounded-2xl p-6 shadow-xs space-y-5" data-testid="product-details-header">
+      {/* Header + Price + Stock */}
       <div className="flex justify-between items-start gap-4">
         <div>
-          {/* Trust pill */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ecfdf5] text-[#065f46] text-xs font-semibold mb-3 border border-[#a7f3d0]">
-            <span>📦</span>
-            <span>Discreet plain packaging • Hospital grade</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#0b3b2c] tracking-tight" data-testid="product-title">{product.title}</h1>
-          <div className="mt-3 flex items-baseline gap-3" data-testid="product-price-container">
+          <h1 className="text-xl md:text-2xl font-bold text-[#0b3b2c] tracking-tight" data-testid="product-title">
+            {product.title}
+          </h1>
+          <div className="mt-2.5 flex items-baseline gap-2.5" data-testid="product-price-container">
             {hasAnyPrice && variantPrice ? (
               <>
                 <span className="text-3xl font-extrabold text-[#0b3b2c]" data-testid="product-price-current">
-                  {orderFrequency === "repeat" ? `${variantPrice.currency_code?.toUpperCase()} ${repeatDiscountPrice}` : variantPrice.calculated_price}
+                  {variantPrice.calculated_price}
                 </span>
-                {variantPrice.calculated_price_number !==
-                  variantPrice.original_price_number && (
+                {variantPrice.calculated_price_number !== variantPrice.original_price_number && (
                   <span className="text-base text-gray-400 line-through" data-testid="product-price-original">
                     {variantPrice.original_price}
                   </span>
                 )}
-                <span className="text-xs text-gray-500 font-medium">
-                  {orderFrequency === "repeat" ? "(Includes 5% repeat discount & GST)" : "(Includes GST & plain box delivery)"}
-                </span>
+                <span className="text-xs text-gray-500 font-medium">incl. GST</span>
               </>
             ) : (
               <span className="label-md text-secondary pt-2 pb-4" data-testid="product-price-unavailable">
@@ -162,126 +185,208 @@ export const ProductDetailsHeader = ({
               </span>
             )}
           </div>
+          {isInStock && hasAnyPrice && (
+            <div className="mt-2 flex items-center gap-2 text-xs text-gray-700 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
+              <span>In stock. Order today for delivery in 1–2 days.</span>
+            </div>
+          )}
         </div>
         <div>
-          {/* Add to Wishlist */}
-          <WishlistButton
-            productId={product.id}
-            wishlist={wishlist}
-            user={user}
-          />
+          <WishlistButton productId={product.id} wishlist={wishlist} user={user} />
         </div>
+      </div>
+
+      {/* Doctor / Nurse reminder box (Slide 3) */}
+      <div className="rounded-xl border border-[#e2e8f0] bg-[#fbfdfc] p-3.5 flex items-start gap-2.5 text-xs text-gray-700">
+        <span className="text-[#0b3b2c] font-bold text-sm leading-none mt-0.5">ⓘ</span>
+        <span>Always use the size and type your doctor or nurse recommends.</span>
       </div>
 
       {/* Product Variants */}
       {hasAnyPrice && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="pt-2 border-t border-gray-100">
           <ProductVariants product={product} selectedVariant={selectedVariant} />
         </div>
       )}
 
-      {/* Frequency Selector: Just this once vs Repeat every 4 weeks */}
-      <div className="mt-6 mb-6">
-        <label className="block text-sm font-bold text-gray-800 mb-2.5">
-          Delivery frequency
-        </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setOrderFrequency("once")}
-            className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
-              orderFrequency === "once"
-                ? "border-[#0b3b2c] bg-[#ecfdf5]/40 ring-2 ring-[#0b3b2c]/20"
-                : "border-gray-200 hover:border-gray-300 bg-white"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-bold text-sm text-gray-900">Just this once</span>
-              <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                orderFrequency === "once" ? "border-[#0b3b2c] bg-[#0b3b2c]" : "border-gray-300"
-              }`}>
-                {orderFrequency === "once" && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-              </span>
-            </div>
-            <p className="text-xs text-gray-500">Standard single order delivery</p>
-          </button>
+      {/* Quantity Stepper + Add to Cart Button (Slide 3) */}
+      <div className="space-y-2.5 pt-1">
+        <div className="flex items-center gap-3">
+          <div className="inline-flex items-center border border-gray-300 rounded-full bg-white px-2 py-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold text-gray-700 hover:bg-gray-100 transition-colors"
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+            <span className="w-9 text-center text-sm font-bold text-gray-900">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => q + 1)}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold text-gray-700 hover:bg-gray-100 transition-colors"
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+          </div>
 
           <button
             type="button"
-            onClick={() => setOrderFrequency("repeat")}
-            className={`p-3.5 rounded-xl border text-left transition-all relative flex flex-col justify-between ${
-              orderFrequency === "repeat"
-                ? "border-[#0b3b2c] bg-[#ecfdf5]/50 ring-2 ring-[#0b3b2c]/20"
-                : "border-gray-200 hover:border-gray-300 bg-white"
+            onClick={() => handleAddToCart(quantity)}
+            disabled={isAddToCartDisabled}
+            className={`flex-1 py-3.5 px-6 rounded-full font-bold text-sm md:text-base flex items-center justify-center gap-2 transition-colors shadow-xs ${
+              isAddToCartDisabled
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-[#0b3b2c] hover:bg-[#062c20] text-white active:scale-[0.99]"
             }`}
+            data-testid="product-add-to-cart-button"
           >
-            <span className="absolute -top-2.5 right-3 bg-[#065f46] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-              Save 5%
-            </span>
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-bold text-sm text-[#0b3b2c]">Repeat every 4 weeks</span>
-              <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                orderFrequency === "repeat" ? "border-[#0b3b2c] bg-[#0b3b2c]" : "border-gray-300"
-              }`}>
-                {orderFrequency === "repeat" && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-              </span>
-            </div>
-            <p className="text-xs text-gray-600">Pause or cancel any time with 1 click</p>
+            {isAddingItem ? (
+              <span className="animate-spin text-lg">⏳</span>
+            ) : !hasAnyPrice ? (
+              "Not available in your region"
+            ) : isInStock && variantHasPrice ? (
+              <>
+                <span>🛍️</span>
+                <span>Add to cart{totalPriceFormatted ? ` · ${totalPriceFormatted}` : ""}</span>
+              </>
+            ) : (
+              "Out of stock"
+            )}
           </button>
         </div>
+
+        {chosenSummary && (
+          <p className="text-xs text-gray-500">
+            You&apos;ve chosen: <strong className="text-gray-800">{chosenSummary}</strong>
+          </p>
+        )}
       </div>
 
-      {/* Add to Cart Button */}
+      {/* Compare other sellers button (Slide 3 & 4) */}
       <button
         type="button"
-        onClick={handleAddToCart}
-        disabled={isAddToCartDisabled}
-        className={`w-full py-4 px-6 rounded-xl font-bold text-base md:text-lg flex items-center justify-center gap-2 transition-colors shadow-sm ${
-          isAddToCartDisabled
-            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-            : "bg-[#0b3b2c] hover:bg-[#062c20] text-white active:scale-[0.99]"
-        }`}
-        data-testid="product-add-to-cart-button"
+        onClick={handleOpenCompare}
+        className="w-full py-2.5 px-5 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-xs md:text-sm font-semibold text-[#0b3b2c] transition-colors"
       >
-        {isAddingItem ? (
-          <span className="animate-spin text-xl">⏳</span>
-        ) : !hasAnyPrice ? (
-          "NOT AVAILABLE IN YOUR REGION"
-        ) : isInStock && variantHasPrice ? (
-          <>
-            <span>🛒</span>
-            <span>Add to cart {orderFrequency === "repeat" ? "(Every 4 weeks)" : ""}</span>
-          </>
-        ) : (
-          "OUT OF STOCK"
-        )}
+        Compare other sellers
       </button>
 
-      {/* Trust & Discreet delivery box */}
-      <div className="mt-6 pt-5 border-t border-gray-100 flex flex-col gap-2.5 text-xs text-gray-600">
-        <div className="flex items-center gap-2">
-          <span className="text-base">📦</span>
-          <span><strong>Plain box guarantee:</strong> Arrives in an unmarked brown box with no mention of healthcare or medical contents.</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-base">🚚</span>
-          <span><strong>Fast Singapore delivery:</strong> Dispatched in 24 hours. Free delivery on orders over $50.</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-base">📞</span>
-          <span><strong>Prefer telephone order?</strong> Call toll-free <a href="tel:18001234567" className="font-bold text-[#0b3b2c] underline">1800 123 4567</a> (Mon–Sat 9am–6pm).</span>
-        </div>
+      {/* Not sure which size you need? (Slide 3) */}
+      <div className="rounded-xl border border-[#e2e8f0] bg-[#fbfdfc] p-4 space-y-2.5">
+        <h3 className="text-sm font-bold text-[#0b3b2c]">Not sure which size you need?</h3>
+        <p className="text-xs text-gray-600 leading-relaxed">
+          Call us, 9 am – 6 pm daily. We can check your old box with you over the phone.
+        </p>
+        <a
+          href="tel:18001234567"
+          className="w-full py-2.5 px-4 rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-xs md:text-sm font-semibold text-[#0b3b2c] flex items-center justify-center gap-2 transition-colors"
+        >
+          <span>📞</span>
+          <span>Call 1800 XXX XXXX</span>
+        </a>
       </div>
 
       {/* Seller message */}
       {user && product.seller && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="pt-2 border-t border-gray-100">
           <Chat
             user={user}
             seller={product.seller}
             buttonClassNames="w-full uppercase text-xs"
             product={product}
           />
+        </div>
+      )}
+
+      {/* Compare Sellers Modal (Slide 4) */}
+      {showCompareModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#0b3b2c]">
+                  Compare {offers.length > 0 ? offers.length : 1} {offers.length === 1 ? "offer" : "offers"}
+                </h3>
+                {chosenSummary && (
+                  <p className="text-xs text-gray-500 mt-0.5">{chosenSummary}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCompareModal(false)}
+                className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {loadingOffers ? (
+              <div className="py-8 text-center text-sm text-gray-500">Loading seller offers...</div>
+            ) : (
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {(offers.length > 0
+                  ? offers
+                  : [
+                      {
+                        id: "current",
+                        seller: product.seller || { name: "Vertis Care Store" },
+                        price: variantPrice?.calculated_price,
+                      },
+                    ]
+                ).map((offer: any, idx: number) => {
+                  const sellerName = offer?.seller?.name || product.seller?.name || "Verified Seller"
+                  const initials = sellerName
+                    .split(" ")
+                    .map((w: string) => w[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()
+                  return (
+                    <div
+                      key={offer.id || idx}
+                      className="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-gray-200 bg-[#fbfdfc]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-[#0b3b2c] text-white font-bold text-xs flex items-center justify-center shrink-0">
+                          {initials}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-gray-900">{sellerName}</span>
+                            {idx === 0 && (
+                              <span className="bg-[#065f46] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                Best price
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500">In stock • Dispatched in 24h</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-extrabold text-[#0b3b2c]">
+                          {offer.price || variantPrice?.calculated_price || ""}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCompareModal(false)
+                            handleAddToCart(quantity)
+                          }}
+                          className="bg-[#0b3b2c] hover:bg-[#062c20] text-white text-xs font-bold px-4 py-2 rounded-full transition-colors"
+                        >
+                          Add to cart
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
