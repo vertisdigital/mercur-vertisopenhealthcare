@@ -465,7 +465,12 @@ export async function placeOrder(cartId?: string) {
     revalidatePath('/user/reviews');
     revalidatePath('/user/orders');
     await removeCartId();
-    redirect(`/order/${orderId}/confirmed`);
+    const { headers: nextHeaders } = await import('next/headers');
+    const reqHeaders = await nextHeaders();
+    const referer = reqHeaders.get('referer') || '';
+    const localeMatch = referer.match(/https?:\/\/[^/]+\/([a-z]{2})(\/|$)/i);
+    const locale = localeMatch?.[1] || process.env.NEXT_PUBLIC_DEFAULT_REGION || 'de';
+    redirect(`/${locale}/order/${orderId}/confirmed`);
   }
 
   return res;
