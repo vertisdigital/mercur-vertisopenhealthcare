@@ -447,7 +447,7 @@ export async function placeOrder(cartId?: string) {
     ...(await getAuthHeaders())
   };
 
-  const res = await fetchQuery(`/store/carts/${id}/complete`, {
+  const res = await fetchQuery(`/store/carts/${id}/complete?fields=*orders`, {
     method: 'POST',
     headers
   });
@@ -455,11 +455,17 @@ export async function placeOrder(cartId?: string) {
   const cartCacheTag = await getCacheTag('carts');
   revalidateTag(cartCacheTag);
 
-  if (res?.data?.order_set) {
+  const orderGroup = res?.data?.order_group || res?.data?.order_set;
+  const orderId =
+    orderGroup?.orders?.[0]?.id ||
+    res?.data?.order?.id ||
+    res?.data?.orders?.[0]?.id;
+
+  if (res?.ok && orderId) {
     revalidatePath('/user/reviews');
     revalidatePath('/user/orders');
     await removeCartId();
-    redirect(`/order/${res?.data?.order_set.orders[0].id}/confirmed`);
+    redirect(`/order/${orderId}/confirmed`);
   }
 
   return res;
