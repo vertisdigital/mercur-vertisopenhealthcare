@@ -202,6 +202,32 @@ async function main() {
             `price_cat_${slug}_usd`,
           ]
         );
+
+        // Inventory item, level, and offer_inventory_item link
+        const iiId = `iitem_cat_${slug}_s${idx + 1}`;
+        const ilId = `ilev_cat_${slug}_s${idx + 1}`;
+        const oiiId = `oii_cat_${slug}_s${idx + 1}`;
+        const locId = 'sloc_01M6R0J3YDGK6PDM9YAB69XG0F';
+        const rawQty = JSON.stringify({ value: '500', precision: 20 });
+
+        await client.query(
+          `INSERT INTO inventory_item (id, sku, title, requires_shipping, created_at, updated_at)
+           VALUES ($1, $2, $3, true, NOW(), NOW())
+           ON CONFLICT (id) DO UPDATE SET sku = $2, title = $3`,
+          [iiId, `${sku}-S${idx + 1}`, `Intermittent Catheters (${sv.value} / ${bv.value})`]
+        );
+        await client.query(
+          `INSERT INTO inventory_level (id, inventory_item_id, location_id, stocked_quantity, raw_stocked_quantity, reserved_quantity, raw_reserved_quantity, incoming_quantity, raw_incoming_quantity, created_at, updated_at)
+           VALUES ($1, $2, $3, 500, $4::jsonb, 0, '{"value":"0","precision":20}'::jsonb, 0, '{"value":"0","precision":20}'::jsonb, NOW(), NOW())
+           ON CONFLICT (id) DO UPDATE SET stocked_quantity = 500`,
+          [ilId, iiId, locId, rawQty]
+        );
+        await client.query(
+          `INSERT INTO offer_inventory_item (id, offer_id, inventory_item_id, required_quantity, created_at, updated_at)
+           VALUES ($1, $2, $3, 1, NOW(), NOW())
+           ON CONFLICT (offer_id, inventory_item_id) DO NOTHING`,
+          [oiiId, offerId, iiId]
+        );
       }
     }
   }
