@@ -54,20 +54,26 @@ export const CartAddressSection = ({
   }
 
   return (
-    <div className="border p-4 rounded-sm bg-ui-bg-interactive" data-testid="checkout-step-address">
-      <div className="flex flex-row items-center justify-between mb-6">
+    <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 shadow-xs" data-testid="checkout-step-address">
+      <div className="flex flex-row items-center justify-between mb-5">
         <Heading
           level="h2"
-          className="flex flex-row text-3xl-regular gap-x-2 items-baseline items-center"
+          className="text-xl font-bold text-[#0b3b2c] flex flex-row gap-x-2 items-center"
         >
-          {!isOpen && <CheckCircleSolid />} Shipping Address
+          {!isOpen && (
+            <span className="w-6 h-6 rounded-full bg-[#0b3b2c] text-white text-xs flex items-center justify-center font-bold">✓</span>
+          )}
+          Where should we deliver?
         </Heading>
         {!isOpen && isAddress && (
-          <Text>
-            <Button onClick={handleEdit} variant="tonal" data-testid="checkout-address-edit-button">
-              Edit
-            </Button>
-          </Text>
+          <button
+            type="button"
+            onClick={handleEdit}
+            data-testid="checkout-address-edit-button"
+            className="px-4 py-1.5 rounded-full border border-gray-300 text-xs font-semibold text-[#0b3b2c] hover:bg-gray-50 transition-colors"
+          >
+            Edit
+          </button>
         )}
       </div>
       <form
@@ -78,20 +84,20 @@ export const CartAddressSection = ({
         }}
       >
         {isOpen ? (
-          <div className="pb-8">
+          <div className="pb-4">
             <ShippingAddress
               customer={customer}
               checked={sameAsBilling}
               onChange={toggleSameAsBilling}
               cart={cart}
             />
-            <Button
-              className="mt-6"
+            <button
+              type="submit"
+              className="w-full mt-6 py-3.5 px-6 rounded-full font-bold text-sm md:text-base bg-[#0b3b2c] hover:bg-[#062c20] text-white transition-colors shadow-xs"
               data-testid="submit-address-button"
-              variant="tonal"
             >
-              Save
-            </Button>
+              Continue to delivery
+            </button>
             <ErrorMessage
               error={message !== "success" && message}
               data-testid="address-error-message"

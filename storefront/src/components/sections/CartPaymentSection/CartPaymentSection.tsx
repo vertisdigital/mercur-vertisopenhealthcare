@@ -113,25 +113,26 @@ const CartPaymentSection = ({
   const isEditEnabled = !isOpen && !!cart?.payment_collection?.payment_sessions?.length;
 
   return (
-    <div className="bg-ui-bg-interactive rounded-sm border p-4" data-testid="checkout-step-payment">
-      <div className="mb-6 flex flex-row items-center justify-between">
+    <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 shadow-xs" data-testid="checkout-step-payment">
+      <div className="mb-5 flex flex-row items-center justify-between">
         <Heading
           level="h2"
-          className="text-3xl-regular flex flex-row items-center items-baseline gap-x-2"
+          className="text-xl font-bold text-[#0b3b2c] flex flex-row items-center gap-x-2"
         >
-          {!isOpen && paymentReady && <CheckCircleSolid />}
+          {!isOpen && paymentReady && (
+            <span className="w-6 h-6 rounded-full bg-[#0b3b2c] text-white text-xs flex items-center justify-center font-bold">✓</span>
+          )}
           Payment
         </Heading>
         {isEditEnabled && (
-          <Text>
-            <Button
-              data-testid="checkout-payment-edit-button"
-              onClick={handleEdit}
-              variant="tonal"
-            >
-              Edit
-            </Button>
-          </Text>
+          <button
+            type="button"
+            data-testid="checkout-payment-edit-button"
+            onClick={handleEdit}
+            className="px-4 py-1.5 rounded-full border border-gray-300 text-xs font-semibold text-[#0b3b2c] hover:bg-gray-50 transition-colors"
+          >
+            Edit
+          </button>
         )}
       </div>
       <div>
@@ -187,7 +188,7 @@ const CartPaymentSection = ({
             type="button"
             onClick={handleSubmit}
             disabled={(isStripe && !cardComplete) || (!selectedPaymentMethod && !paidByGiftcard) || isLoading}
-            className={`w-full mt-4 py-4 px-6 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-colors shadow-sm ${
+            className={`w-full mt-4 py-3.5 px-6 rounded-full font-bold text-sm md:text-base flex items-center justify-center gap-2 transition-colors shadow-xs ${
               (isStripe && !cardComplete) || (!selectedPaymentMethod && !paidByGiftcard) || isLoading
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : 'bg-[#0b3b2c] hover:bg-[#062c20] text-white active:scale-[0.99]'
@@ -198,10 +199,7 @@ const CartPaymentSection = ({
             ) : !activeSession && isStripeFunc(selectedPaymentMethod) ? (
               'Enter card details'
             ) : (
-              <>
-                <span>Continue to Review</span>
-                <span>→</span>
-              </>
+              <span>Continue to review</span>
             )}
           </button>
         </div>
