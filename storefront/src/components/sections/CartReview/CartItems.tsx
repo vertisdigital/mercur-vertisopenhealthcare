@@ -37,18 +37,19 @@ function groupItemsBySeller(cart: HttpTypes.StoreCart) {
       }
       groupedBySeller[seller.id].items.push(item);
     } else {
-      if (!groupedBySeller['fleek']) {
-        groupedBySeller['fleek'] = {
+      if (!groupedBySeller['vertis-care']) {
+        groupedBySeller['vertis-care'] = {
           seller: {
-            name: 'Fleek',
-            id: 'fleek',
+            name: 'Vertis Care Store',
+            id: 'vertis-care',
+            handle: '',
             photo: '/Logo.svg',
             created_at: new Date()
           },
           items: []
         };
       }
-      groupedBySeller['fleek'].items.push(item);
+      groupedBySeller['vertis-care'].items.push(item);
     }
   });
 

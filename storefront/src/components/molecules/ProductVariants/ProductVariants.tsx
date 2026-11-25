@@ -61,11 +61,10 @@ export const ProductVariants = ({
                         data-testid={`product-variant-chip-${key}-${value
                           ?.toLowerCase()
                           .replace(/\s+/g, "-")}`}
-                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
-                          isSelected
+                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border ${isSelected
                             ? "border-2 border-[#0b3b2c] bg-[#ecfdf5]/60 text-[#0b3b2c] shadow-xs"
                             : "border-gray-300 bg-white text-gray-800 hover:border-[#0b3b2c]/60 hover:bg-gray-50"
-                        }`}
+                          }`}
                       >
                         {value}
                       </button>
