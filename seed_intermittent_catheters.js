@@ -184,6 +184,24 @@ async function main() {
            ON CONFLICT (offer_id, seller_id) DO NOTHING`,
           [`os_cat_${slug}_s${idx + 1}`, offerId, sId]
         );
+        await client.query(
+          `INSERT INTO offer_product (id, offer_id, product_id, created_at, updated_at)
+           VALUES ($1, $2, $3, NOW(), NOW())
+           ON CONFLICT (offer_id, product_id) DO NOTHING`,
+          [`op_cat_${slug}_s${idx + 1}`, offerId, prodId]
+        );
+        await client.query(
+          `INSERT INTO offer_offer_pricing_price (id, offer_id, price_id, created_at, updated_at)
+           VALUES ($1, $2, $3, NOW(), NOW()), ($4, $2, $5, NOW(), NOW())
+           ON CONFLICT (offer_id, price_id) DO NOTHING`,
+          [
+            `oop_cat_${slug}_s${idx + 1}_eur`,
+            offerId,
+            `price_cat_${slug}_eur`,
+            `oop_cat_${slug}_s${idx + 1}_usd`,
+            `price_cat_${slug}_usd`,
+          ]
+        );
       }
     }
   }

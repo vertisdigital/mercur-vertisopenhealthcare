@@ -27,6 +27,23 @@ export const ProductVariants = ({
           const currentVal = selectedVariant[key]
           const isSize = key.includes("size")
 
+          const derivedValues =
+            values && values.length > 0
+              ? values
+              : Array.from(
+                  new Set(
+                    (product.variants || [])
+                      .flatMap((v) => v.options || [])
+                      .filter(
+                        (vo) =>
+                          vo.option_id === id ||
+                          vo.option?.title?.toLowerCase() === key
+                      )
+                      .map((vo) => vo.value)
+                      .filter(Boolean)
+                  )
+                ).map((val) => ({ id: `${id}-${val}`, value: val }))
+
           return (
             <div key={id} data-testid={`product-variant-${key}`}>
               <div className="flex items-baseline gap-1.5">
@@ -47,7 +64,7 @@ export const ProductVariants = ({
                 className="flex flex-wrap gap-2.5 mt-2.5"
                 data-testid={`product-variant-options-${key}`}
               >
-                {(values || []).map(
+                {(derivedValues || []).map(
                   ({
                     id: valId,
                     value,
