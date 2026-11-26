@@ -99,7 +99,7 @@ export const ShopByNeed = async () => {
     parentCategories: [],
   }))) as { parentCategories: HttpTypes.StoreProductCategory[] }
 
-  const aisles = parentCategories.slice(0, 6)
+  const aisles = parentCategories.slice(0, 9)
   if (!aisles.length) return null
 
   return (
@@ -107,7 +107,7 @@ export const ShopByNeed = async () => {
       <SectionHeading
         id="shop-by-need"
         title="Shop by need"
-        intro={`${["", "One", "Two", "Three", "Four", "Five", "Six"][aisles.length]} simple aisles. Every product shows its size, pack count and price up front.`}
+        intro={`${["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"][aisles.length]} simple aisles. Every product shows its size, pack count and price up front.`}
         action={
           <LocalizedClientLink href="/categories" className="sc-link inline-flex items-center gap-2 text-[17px]">
             See all products <ArrowRightIcon size={17} />

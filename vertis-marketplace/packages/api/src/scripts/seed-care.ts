@@ -63,9 +63,10 @@ const AISLES = [
   { name: "Bathroom safety", handle: "bathroom-safety", description: "Grab rails, shower chairs, raised seats" },
   { name: "Daily living", handle: "daily-living", description: "Easy-grip cutlery, pill organisers, reachers" },
   { name: "Skin & personal care", handle: "skin-personal-care", description: "Barrier creams, wipes, gloves" },
+  // The header shows the first seven aisles (by rank), so training comes before the last two.
+  { name: "Caregiver training", handle: "caregiver-training", description: "CTG-funded courses for family carers" },
   { name: "Health monitoring", handle: "health-monitoring", description: "Blood pressure monitors, thermometers" },
   { name: "Nutrition", handle: "nutrition", description: "Nutrition drinks, diabetic formulas" },
-  { name: "Caregiver training", handle: "caregiver-training", description: "CTG-funded courses for family carers" },
 ] as const
 
 type SellerKey =
@@ -853,6 +854,13 @@ export default async function seedCare({ container }: ExecArgs) {
     })
     result.forEach((c) => aisleByHandle.set(c.handle, c.id))
     logger.info(`Created ${result.length} aisles.`)
+  }
+  // Keep aisle order in line with AISLES on re-runs (rank decides nav and home order).
+  for (const c of existingAisles) {
+    const rank = AISLES.findIndex((a) => a.handle === c.handle)
+    if (c.rank !== rank) {
+      await updateProductCategoriesWorkflow(container).run({ input: { selector: { id: c.id }, update: { rank } } })
+    }
   }
 
   /* 4. Sellers ----------------------------------------------------------- */

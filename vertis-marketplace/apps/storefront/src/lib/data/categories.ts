@@ -21,6 +21,7 @@ export const listCategories = async ({ query }: Partial<CategoriesProps> = {}) =
       fields: 'id,handle,name,rank,metadata,parent_category_id,description,*category_children',
       include_descendants_tree: true,
       include_ancestors_tree: true,
+      order: 'rank',
       limit,
       ...query,
       fetchOptions: { cache: 'no-store' }
