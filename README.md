@@ -1,98 +1,91 @@
 # Mercur Vertis Open Healthcare Marketplace
 
-A modern, multi-vendor healthcare commerce and training catalog platform built with **Medusa v2**, **Mercur Marketplace**, and **Next.js 15**.
+A multi-vendor healthcare marketplace for Singapore, built on **Mercur 2.4** (Medusa v2) with the elder-friendly **SilverCircle** storefront (Next.js 16).
 
-Designed for Singapore healthcare and caregiving ecosystems, combining:
-- **Seniors' Mobility and Enabling Fund (SMF)** consumable subsidies and medical supplies (diapers, nutrition, blood pressure monitors, catheters, wound care).
-- **Caregivers Training Grant (CTG)** & **SkillsFuture (SFC)** training course catalog and registrations, synced from live OrderCloud endpoints.
-- High-performance multi-vendor marketplace dynamics inspired by Shopee / Lazada Singapore (official brand malls, AIC-accredited training providers, flash badges, subsidies filtering).
+It combines:
+- **Care supplies** (SMF-style consumables): continence care, wound care, mobility aids, bathroom safety, daily living, skin care, health monitoring and nutrition.
+- **Official brand stores**: TENA Singapore, Abbott Nutrition SG and Omron Healthcare SG, next to the SilverCircle Care and CarePlus Pharmacy shops. Several products are sold by more than one seller, so shoppers can compare offers.
+- **Caregivers Training Grant (CTG) courses** from AIC-accredited training providers (The Salvation Army Peacehaven, Home Nursing Foundation, HCA Hospice, Econ Careskill).
 
----
-
-## 🏗 Architecture
-
-```
-mercur-vertisopenhealthcare/
-├── storefront/               # Next.js 15 App Router storefront
-│   ├── src/
-│   │   ├── app/              # Localized routing, categories, products
-│   │   ├── components/       # UI molecules, organisms, sections, cells
-│   │   ├── lib/              # Data fetching, Medusa client, filters
-│   │   └── const/            # App constants, pagination, regions
-│   └── public/               # Logos, category illustrations, banners
-├── vertis-marketplace/       # Medusa v2 multi-vendor backend
-│   ├── apps/                 # API server, admin portal, vendor dashboard
-│   ├── packages/             # Marketplace modules, payment, fulfillment
-│   └── docker-compose.yml    # Postgres & Redis containers
-├── convert_to_healthcare.sql # SQL migration for SMF consumables & healthcare sellers
-├── update_remaining.sql      # Additional medical consumables & brand mappings
-└── seed_ctg_courses.js       # Live OrderCloud CTG training course ingestion script
-```
+Prices are in **SGD with 9% GST included**.
 
 ---
 
-## 🚀 Getting Started
+## Architecture
+
+Everything lives in one Turborepo monorepo, so a single `bun run dev` starts all of it:
+
+```
+vertis-marketplace/
+├── packages/api/             # Medusa v2 + Mercur backend (port 9000)
+│   ├── src/scripts/seed.ts       # base Mercur seed (store, sales channel, shipping profile, API key)
+│   ├── src/scripts/seed-care.ts  # Singapore healthcare catalogue, sellers, CTG courses
+│   └── static/care/              # product illustrations served at /static/care
+├── apps/admin/               # Admin panel  → http://localhost:9000/dashboard (Vite, port 7000)
+├── apps/vendor/              # Seller panel → http://localhost:9000/seller   (Vite, port 7001)
+├── apps/storefront/          # SilverCircle storefront (Next.js 16, port 3000)
+│   └── src/components/silver/    # design kit: header, home sections, PDP, checkout
+└── docker-compose.yml        # Postgres + Redis
+```
+
+The admin and seller panels are served through the backend URL, which proxies to their Vite dev servers. If you start only `packages/api`, those URLs show "Dashboard not built".
+
+---
+
+## Getting started
 
 ### Prerequisites
-- Node.js 20+
-- [Bun](https://bun.sh/) (recommended) or pnpm
-- Docker & Docker Compose (for Postgres and Redis)
+- Node.js 22+
+- [Bun](https://bun.sh/)
+- Docker
 
----
-
-### 1. Database Setup
-
-Start Postgres and Redis:
+### 1. Database
 ```bash
 cd vertis-marketplace
 docker compose up -d
 ```
 
-Seed initial healthcare products and sellers:
+### 2. Backend env and data
 ```bash
-# Execute SQL migration on postgres database 'mercur'
-psql -U postgres -d mercur -f ../convert_to_healthcare.sql
-psql -U postgres -d mercur -f ../update_remaining.sql
+cp packages/api/.env.template packages/api/.env   # defaults match docker-compose
+bun install
+
+cd packages/api
+bunx medusa db:migrate
+bun run seed                 # base Mercur data
+bun run seed:care            # healthcare catalogue, sellers, CTG courses
+bunx medusa user -e admin@mercur-test.com -p supersecret
 ```
 
-Fetch & seed live CTG training courses from OrderCloud:
+`seed:care` is idempotent: run it again and it skips whatever already exists. It hides the base fashion demo (inactive categories, draft products) instead of deleting it.
+
+### 3. Storefront env
 ```bash
-node ../seed_ctg_courses.js
+cp apps/storefront/.env.template apps/storefront/.env.local
 ```
+Set `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` to the key created by `bun run seed` (Admin → Settings → Publishable API keys, or `select token from api_key where type='publishable'`).
 
----
-
-### 2. Backend (Medusa v2 & Mercur)
-
+### 4. Run
 ```bash
 cd vertis-marketplace
-bun install
 bun run dev
 ```
 
-The Medusa server starts at `http://localhost:9000`.
+| | URL | Login |
+|---|---|---|
+| Storefront | http://localhost:3000/sg | register, or check out as a guest |
+| Admin | http://localhost:9000/dashboard | admin@mercur-test.com / supersecret |
+| Seller | http://localhost:9000/seller | e.g. silvercircle@mercur.dev, tena@mercur.dev, peacehaven@mercur.dev / supersecret |
+
+All seeded sellers use the password `supersecret`. Their e-mails: `silvercircle`, `careplus`, `tena`, `abbott`, `omron`, `peacehaven`, `hnf`, `hca`, `econ` (each `@mercur.dev`).
 
 ---
 
-### 3. Storefront (Next.js 15)
+## Demo notes
+- **Courses are products** in the *Caregiver training* aisle. The provider, mode, duration, topic and CTG eligibility appear as product facts. Training providers offer a free "Course confirmation by e-mail" option instead of delivery.
+- **Checkout splits by seller.** One cart becomes an order group with one order per seller, and each seller fulfils its own order in the seller panel.
+- **Commission** is Mercur's default 10% of the pre-GST amount. Payouts need a payout provider, such as the Stripe Connect plugin, which is not installed.
+- **Design-only features:** repeat deliveries and delivery day/time slots are shown in the UI but have no backend support yet.
 
-```bash
-cd storefront
-bun install
-bun run dev
-```
-
-The marketplace storefront runs at `http://localhost:3000`.
-
----
-
-## 💡 Key Features
-- **CTG Training Course Catalogue**: Dedicated course cards with training provider attribution, venue/mode tags, target conditions, and CTG subsidy badges.
-- **SMF Consumables & Official Malls**: Verified brand stores for TENA, Abbott Ensure, Omron Healthcare, Salvation Army, and Home Nursing Foundation.
-- **Dual-Mode Interactive Filtering**: Dynamic sidebar filters tailoring attributes according to product catalog type (Skills & Care Target for CTG; Subsidies & Brands for SMF).
-- **Pixel-Perfect Unified UI**: Symmetrical responsive containers aligned across all navigation levels and product grids.
-
----
-
-## 📄 License
+## License
 Internal proprietary - Vertis Digital Pte Ltd.
